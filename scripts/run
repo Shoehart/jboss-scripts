@@ -2,8 +2,7 @@
 set -e
 
 BASE_DIR=`cd $(dirname "$0"); pwd`
-
-source config
+source "$BASE_DIR"/config
 
 f=$1
 d="$BASE_DIR"/$JBOSS_DIR/$JBOSS_BIN_DIR
