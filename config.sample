@@ -3,15 +3,19 @@
 JBOSS_VERSION=7.0
 JBOSS_DIR=jboss-eap-$JBOSS_VERSION
 
-jboss-7.0-config() {
+jboss-6-7-config() {
   JBOSS_ZIP=$JBOSS_DIR.0.zip
   JBOSS_BIN_DIR=bin
   JBOSS_START_SCRIPT=standalone.sh
   JBOSS_DEPLOY_DIR=standalone/deployments
 }
 
+jboss-7.0-config() {
+  jboss-6-7-config
+}
+
 jboss-6.4-config() {
-  jboss-eap-7.0
+  jboss-6-7-config
 }
 
 jboss-5.2-config() {
