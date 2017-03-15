@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+BASE_DIR=`cd "$(dirname "$0")"; pwd`
+cd "$BASE_DIR"
+
+source config
+
+[ "$JBOSS_DIR" ] && rm -rf "$JBOSS_DIR"
+unzip "$JBOSS_ZIP"

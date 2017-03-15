@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+BASE_DIR=`cd $(dirname "$0"); pwd`
+source "$BASE_DIR"/config
+
+f=$1
+d="$BASE_DIR"/$JBOSS_DIR/$JBOSS_DEPLOY_DIR
+
+[ -d "$d" ] || { echo "Install JBoss first!"; exit 1; }
+
+if [ -f "$f" ]
+then
+  cp "$f" "$d"/
+fi

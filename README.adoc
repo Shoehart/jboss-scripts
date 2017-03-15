@@ -1,0 +1,40 @@
+= JBoss EAP Simple Scripts
+
+`jboss-eap-ss` is just a small bunch of scripts intended to facilitate simple tasks with different versions of JBoss EAP.
+
+== Installation
+
+Go to a directory where do you have binaries for a specific JBoss EAP version. For example, supose that you are in `jboss-eap-7` directory and you already download the `jboss-eap-7.0.0.zip` on this directory. To start this version off jboss, clone this project on a parent (`..`) dir and, after that, proceed with the following commands:
+
+[source,bash]
+----
+../jboss-eap-ss/install
+----
+
+== Use
+
+First, edit your `config` file and set `JBOSS_VERSION` accordingly. This file was copied from link:config.sample[] when you called `install`. After that ...
+
+To extract a new installation (removing the existing):
+[source,bash]
+----
+./new
+----
+
+To run JBoss:
+[source,bash]
+----
+./run
+----
+
+To deploy a package (copying it to `JBOSS_DEPLOY_DIR`):
+[source,bash]
+----
+./deploy package
+----
+
+To set your `PATH` (making JBoss binaries available):
+[source,bash]
+----
+./source path
+----

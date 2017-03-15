@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+
+source config
+
+export PATH=$PWD/$JBOSS_DIR/$JBOSS_BIN_DIR:$PATH

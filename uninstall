@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+BASE_DIR=`cd "$(dirname "$0")";pwd`
+cd "$BASE_DIR"
+
+for f in $(find scripts -type f)
+do
+  rm $OLDPWD/`basename "$f"`
+done

@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+BASE_DIR=`cd "$(dirname "$0")";pwd`
+cd "$BASE_DIR"
+
+for f in $(find scripts -type f)
+do
+  ln -sf "$BASE_DIR/scripts/`basename "$f"`" "$OLDPWD"/
+done
+
+config=$OLDPWD/config
+if [ ! -f "$config" ]
+then
+  cp config.sample "$config"
+fi
