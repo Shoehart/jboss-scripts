@@ -1,0 +1,44 @@
+#!/bin/bash
+
+JBOSS_VERSION=${JBOSS_VERSION:-7.0}
+JBOSS_DIR=jboss-eap-$JBOSS_VERSION
+JBOSS_ADMIN_USER=jbadmin
+JBOSS_ADMIN_PASSWORD=jb_xpt0312
+
+jboss-6-7-config() {
+  JBOSS_ZIP=$JBOSS_DIR.0.zip
+  JBOSS_BIN_DIR=bin
+  JBOSS_START_SCRIPT=standalone.sh
+  JBOSS_DEPLOY_DIR=standalone/deployments
+}
+
+jboss-7.0-config() {
+  jboss-6-7-config
+  JBOSS_PATCHES[1]=jboss-eap-7.0.4-patch.zip
+}
+
+jboss-6.4-config() {
+  jboss-6-7-config
+
+  case $OSTYPE in
+    linux*) # assuming that we are on RHEL7
+      # JBoss EAP 6.4 - Install Native Components and Native Utilities: http://red.ht/2mh3cvi
+      JBOSS_NATIVE_COMPONENTS_ZIP=jboss-eap-native-6.4.0-RHEL7-x86_64.zip;;
+  esac
+
+  # Patches from 10 to 14 requires JBoss EAP Update 09 applied (http://red.ht/2mXgFoR)
+  # JBoss EAP 6.4.9 patches
+  JBOSS_PATCHES[1]=jboss-eap-6.4.9-patch.zip
+  JBOSS_PATCHES[2]=BZ-1358913.zip
+  # JBoss EAP 6.4.14 patch
+  JBOSS_PATCHES[3]=jboss-eap-6.4.14-patch.zip
+}
+
+jboss-5.2-config() {
+  JBOSS_ZIP=$JBOSS_DIR.0.zip
+  JBOSS_BIN_DIR=jboss-as/bin
+  JBOSS_START_SCRIPT=run.sh
+  JBOSS_DEPLOY_DIR=jboss-as/server/default/deploy
+}
+
+jboss-$JBOSS_VERSION-config

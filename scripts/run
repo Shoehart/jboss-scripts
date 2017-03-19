@@ -1,11 +1,15 @@
 #!/bin/bash
 set -e
 
-BASE_DIR=`cd $(dirname "$0"); pwd`
-source "$BASE_DIR"/config
+BASE_DIR=`cd "$(dirname "$0")"; pwd`
+cd "$BASE_DIR"
 
-f=$1
-d="$BASE_DIR"/$JBOSS_DIR/$JBOSS_BIN_DIR
+[ -r version ] && source version || true
+config=config
+[ -r "$config" ] || config=config.sample
+source $config
+
+d=$JBOSS_DIR/$JBOSS_BIN_DIR
 
 [ -d "$d" ] || { echo "Install JBoss first!"; exit 1; }
 

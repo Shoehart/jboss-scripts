@@ -4,7 +4,94 @@ set -e
 BASE_DIR=`cd "$(dirname "$0")"; pwd`
 cd "$BASE_DIR"
 
-source config
+[ -r version ] && source version || true
+config=config
+[ -r "$config" ] || config=config.sample
+source $config
 
-[ "$JBOSS_DIR" ] && rm -rf "$JBOSS_DIR"
-unzip "$JBOSS_ZIP"
+check-patched-zip() {
+  JBOSS_PATCHED=false
+  JBOSS_PATCHED_ZIP=`basename $JBOSS_ZIP .zip`.patched.zip
+  if [ -f $JBOSS_PATCHED_ZIP ]
+  then
+    JBOSS_ZIP=$JBOSS_PATCHED_ZIP
+    JBOSS_PATCHED=true
+  fi
+}
+
+remove-existing() {
+  if [ "$JBOSS_DIR" ]
+  then
+    echo "Removing existing installation ..."
+    rm -rf "$JBOSS_DIR"
+  fi
+}
+
+extract-new() {
+  echo "Extracting \"$JBOSS_ZIP\" ..."
+  unzip -q "$JBOSS_ZIP"
+}
+
+add-user() {
+  case "$JBOSS_VERSION" in
+    5*)
+      echo "TODO: implement add-user for JBoss version $JBOSS_VERSION"
+      return
+      ;;
+  esac
+
+  echo "Adding JBoss admin user ($JBOSS_ADMIN_USER) ..."
+
+  if $JBOSS_PATCHED
+  then
+    echo "  Skipping (JBoss already patched)!"
+    return
+  fi
+
+  $JBOSS_DIR/bin/add-user.sh -s -u "$JBOSS_ADMIN_USER" -p "$JBOSS_ADMIN_PASSWORD"
+}
+
+create-zip-with-patches() {
+  case "$JBOSS_VERSION" in
+    5*)
+      echo "TODO: implement create-zip-with-patches for JBoss version $JBOSS_VERSION"
+      return
+      ;;
+  esac
+
+  if ! $JBOSS_PATCHED
+  then
+    if ! [ "${JBOSS_PATCHES[*]}" ]
+    then
+      echo "JBOSS_PATCHES array not configured!"
+      exit 1
+    fi
+    echo "Creating \"$JBOSS_PATCHED_ZIP\" ..."
+    for n in `seq ${#JBOSS_PATCHES[*]}`
+    do
+      patch=${JBOSS_PATCHES[$n]}
+      echo "  Applying patch $patch ..."
+      $JBOSS_DIR/bin/jboss-cli.sh --command="patch apply --override-all $patch" > /dev/null
+    done
+    echo "  Creating zip ..."
+    zip -qr $JBOSS_PATCHED_ZIP $JBOSS_DIR
+  fi
+}
+
+extract-native-components() {
+  if [ "$JBOSS_VERSION" = "6.4" -a -r "$JBOSS_NATIVE_COMPONENTS_ZIP" ]
+  then
+    echo "  Extracting native components (\"$JBOSS_NATIVE_COMPONENTS_ZIP\")..."
+    unzip -q $JBOSS_NATIVE_COMPONENTS_ZIP
+
+    echo '  TODO: Using the Management CLI, activate the native components:'
+    echo '/subsystem=web:write-attribute(name=native,value=true)"'
+  fi
+}
+
+check-patched-zip
+remove-existing
+extract-new
+add-user
+create-zip-with-patches
+extract-native-components
