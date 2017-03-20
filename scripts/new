@@ -9,20 +9,34 @@ config=config
 [ -r "$config" ] || config=config.sample
 source $config
 
-check-patched-zip() {
-  JBOSS_PATCHED=false
-  JBOSS_PATCHED_ZIP=`basename $JBOSS_ZIP .zip`.patched.zip
-  if [ -f $JBOSS_PATCHED_ZIP ]
+sed_i() { 
+  case $OSTYPE in
+    linux*|cygwin) sed -i "$@";;
+    darwin*) sed -i '' "$@";;
+  esac
+}
+
+check-configured-zip() {
+  JBOSS_CONFIGURED=false
+  JBOSS_CONFIGURED_ZIP=`basename $JBOSS_ZIP .zip`.configured.zip
+
+  if [ "$1" = "-f" ]
   then
-    JBOSS_ZIP=$JBOSS_PATCHED_ZIP
-    JBOSS_PATCHED=true
+    echo "Removing configured JBoss ($JBOSS_CONFIGURED_ZIP) ..."
+    rm -f $JBOSS_CONFIGURED_ZIP
+  fi
+
+  if [ -f $JBOSS_CONFIGURED_ZIP ]
+  then
+    JBOSS_ZIP=$JBOSS_CONFIGURED_ZIP
+    JBOSS_CONFIGURED=true
   fi
 }
 
 remove-existing() {
-  if [ "$JBOSS_DIR" ]
+  if [ -d "$JBOSS_DIR" ]
   then
-    echo "Removing existing installation ..."
+    echo "Removing existing installation ($JBOSS_DIR) ..."
     rm -rf "$JBOSS_DIR"
   fi
 }
@@ -40,42 +54,8 @@ add-user() {
       ;;
   esac
 
-  echo "Adding JBoss admin user ($JBOSS_ADMIN_USER) ..."
-
-  if $JBOSS_PATCHED
-  then
-    echo "  Skipping (JBoss already patched)!"
-    return
-  fi
-
+  echo "  Adding JBoss admin user ($JBOSS_ADMIN_USER) ..."
   $JBOSS_DIR/bin/add-user.sh -s -u "$JBOSS_ADMIN_USER" -p "$JBOSS_ADMIN_PASSWORD"
-}
-
-create-zip-with-patches() {
-  case "$JBOSS_VERSION" in
-    5*)
-      echo "TODO: implement create-zip-with-patches for JBoss version $JBOSS_VERSION"
-      return
-      ;;
-  esac
-
-  if ! $JBOSS_PATCHED
-  then
-    if ! [ "${JBOSS_PATCHES[*]}" ]
-    then
-      echo "JBOSS_PATCHES array not configured!"
-      exit 1
-    fi
-    echo "Creating \"$JBOSS_PATCHED_ZIP\" ..."
-    for n in `seq ${#JBOSS_PATCHES[*]}`
-    do
-      patch=${JBOSS_PATCHES[$n]}
-      echo "  Applying patch $patch ..."
-      $JBOSS_DIR/bin/jboss-cli.sh --command="patch apply --override-all $patch" > /dev/null
-    done
-    echo "  Creating zip ..."
-    zip -qr $JBOSS_PATCHED_ZIP $JBOSS_DIR
-  fi
 }
 
 extract-native-components() {
@@ -89,9 +69,84 @@ extract-native-components() {
   fi
 }
 
-check-patched-zip
+apply-jboss-patches() {
+  if ! [ "${JBOSS_PATCHES[*]}" ]
+  then
+    echo "  JBOSS_PATCHES array not configured!"
+    exit 1
+  fi
+  echo "  Applying JBoss patches ..."
+
+  local n
+  for n in `seq ${#JBOSS_PATCHES[*]}`
+  do
+    local patch=${JBOSS_PATCHES[$n]}
+    echo "    Applying $patch ..."
+    $JBOSS_DIR/bin/jboss-cli.sh --command="patch apply --override-all $patch" > /dev/null
+  done
+}
+
+apply-user-patches() {
+  local patch_sufix=".patch"
+  local f
+  local patches_dir=`dirname "$(readlink "$0")"`/../patches/$JBOSS_DIR
+
+  if [ -d "$patches_dir" ]
+  then
+    patches_dir=`cd "$patches_dir"; pwd`
+  else
+    return
+  fi
+
+  echo "  Applying user patches (from \"$patches_dir\")..."
+
+  cd "$patches_dir"
+  echo "    Copying patches to $JBOSS_DIR ..."
+  rsync -a . "$BASE_DIR"/$JBOSS_DIR/
+  cd - &> /dev/null
+
+  for f in $(find $JBOSS_DIR -name \*$patch_sufix)
+  do
+    echo "    Saving ${f%$patch_sufix} with \".original\" extension ..."
+    cp ${f%$patch_sufix} ${f%$patch_sufix}.original
+    echo "    Applying $f ..."
+    patch ${f%$patch_sufix} < $BASE_DIR/$f > /dev/null
+  done
+}
+
+configure-jboss-variables() {
+  local f=$JBOSS_DIR/bin/standalone.conf
+
+  echo "  Setting JBOSS_BIND_ADDRESS_MANAGEMENT ($JBOSS_BIND_ADDRESS_MANAGEMENT) in $f ..."
+  sed_i "s/JBOSS_BIND_ADDRESS_MANAGEMENT/$JBOSS_BIND_ADDRESS_MANAGEMENT/g" $f
+
+  echo "  Setting JBOSS_BIND_ADDRESS ($JBOSS_BIND_ADDRESS) in $f ..."
+  sed_i "s/JBOSS_BIND_ADDRESS/$JBOSS_BIND_ADDRESS/g" $f
+}
+
+create-configured-zip() {
+  case "$JBOSS_VERSION" in
+    5*)
+      echo "TODO: implement create-configured-zip for JBoss version $JBOSS_VERSION"
+      return
+      ;;
+  esac
+
+  if ! $JBOSS_CONFIGURED
+  then
+    echo "Creating \"$JBOSS_CONFIGURED_ZIP\" ..."
+    add-user
+    apply-jboss-patches
+    # INFO: native components must be installed after applying jboss patches, otherwise it fails!
+    extract-native-components
+    apply-user-patches
+    configure-jboss-variables
+    echo "  Creating zip ..."
+    zip -qr $JBOSS_CONFIGURED_ZIP $JBOSS_DIR
+  fi
+}
+
+check-configured-zip "$@"
 remove-existing
 extract-new
-add-user
-create-zip-with-patches
-extract-native-components
+create-configured-zip

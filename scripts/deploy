@@ -2,6 +2,8 @@
 set -e
 
 BASE_DIR=`cd "$(dirname "$0")"; pwd`
+CURRENT_DIR=$PWD
+
 cd "$BASE_DIR"
 
 [ -r version ] && source version || true
@@ -9,7 +11,7 @@ config=config
 [ -r "$config" ] || config=config.sample
 source $config
 
-f=$1
+f=$CURRENT_DIR/$1
 d=$JBOSS_DIR/$JBOSS_DEPLOY_DIR
 
 [ -d "$d" ] || { echo "Install JBoss first!"; exit 1; }

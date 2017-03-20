@@ -4,7 +4,7 @@
 
 == Installation
 
-Go to a directory where do you have binaries for a specific JBoss EAP version. For example, supose that you are in `jboss-eap-7` directory and you already download the `jboss-eap-7.0.0.zip` on this directory. To start this version off jboss, clone this project on a parent (`..`) dir and, after that, proceed with the following commands:
+Go to a directory where do you have binaries for a specific JBoss EAP version. For example, supose that you are in `jboss-eap-7` directory and you already download the `jboss-eap-7.0.0.zip` on this directory. To start this version of jboss, clone this project on a parent (`..`) dir (for example) and, after that, proceed with the following commands:
 
 [source,bash]
 ----
