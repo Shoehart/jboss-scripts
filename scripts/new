@@ -175,7 +175,7 @@ create-configured-zip() {
     extract-native-components
     apply-user-patches
     configure-jboss-variables
-    [ "$ORACLE_DRIVER" ] && install-oracle-driver || true
+    [ -f "$ORACLE_DRIVER" ] && install-oracle-driver || true
     echo "  Creating zip ..."
     zip -qr $JBOSS_CONFIGURED_ZIP $JBOSS_DIR
   fi
