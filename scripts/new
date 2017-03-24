@@ -16,6 +16,10 @@ sed_i() {
   esac
 }
 
+jboss-cli() {
+  $JBOSS_DIR/bin/jboss-cli.sh "$@"
+}
+
 check-configured-zip() {
   JBOSS_CONFIGURED=false
   JBOSS_CONFIGURED_ZIP=`basename $JBOSS_ZIP .zip`.configured.zip
@@ -124,6 +128,36 @@ configure-jboss-variables() {
   sed_i "s/JBOSS_BIND_ADDRESS/$JBOSS_BIND_ADDRESS/g" $f
 }
 
+install-oracle-driver() {
+  local cli=/tmp/oracle-module.cli
+
+  cat > $cli <<EOF
+module add \
+--name=oracle.jdbc \
+--resources=$ORACLE_DRIVER \
+--dependencies=javax.api,javax.transaction.api
+EOF
+  echo "  Installing oracle.jdbc module ..."
+  rm -rf "$JBOSS_DIR"/modules/system/layers/base/oracle/
+  jboss-cli --file=$cli
+  mv "$JBOSS_DIR"/modules/oracle "$JBOSS_DIR"/modules/system/layers/base/
+
+  # http://wildfly.org/news/2015/03/13/Offline-CLI/
+  cat > $cli <<EOF
+embed-server --server-config=standalone.xml
+batch
+/subsystem=datasources/\
+jdbc-driver=oracle:add(\
+driver-name="oracle",\
+driver-module-name="oracle.jdbc",\
+driver-class-name=oracle.jdbc.driver.OracleDriver)
+run-batch
+stop-embedded-server
+EOF
+  echo "  Configuring oracle jdbc driver ..."
+  jboss-cli --file=$cli
+}
+
 create-configured-zip() {
   case "$JBOSS_VERSION" in
     5*)
@@ -141,6 +175,7 @@ create-configured-zip() {
     extract-native-components
     apply-user-patches
     configure-jboss-variables
+    [ "$ORACLE_DRIVER" ] && install-oracle-driver || true
     echo "  Creating zip ..."
     zip -qr $JBOSS_CONFIGURED_ZIP $JBOSS_DIR
   fi
