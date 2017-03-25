@@ -2,21 +2,16 @@
 set -e
 
 BASE_DIR=`cd "$(dirname "$0")"; pwd`
-CURRENT_DIR=$PWD
+source "$BASE_DIR"/common
 
 cd "$BASE_DIR"
 
-[ -r version ] && source version || true
-config=config
-[ -r "$config" ] || config=config.sample
-source $config
-
-f=$CURRENT_DIR/$1
+f=$OLDPWD/$1
 d=$JBOSS_DIR/$JBOSS_DEPLOY_DIR
 
 [ -d "$d" ] || { echo "Install JBoss first!"; exit 1; }
 
 if [ -f "$f" ]
 then
-  cp "$f" "$d"/
+  rm "$d"/"`basename "$f"`"
 fi

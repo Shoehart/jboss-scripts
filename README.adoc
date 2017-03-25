@@ -1,10 +1,10 @@
-= JBoss EAP Scripts
+= JBoss Scripts
 :toc:
 :numbered:
 
-This project is a small bunch of https://www.gnu.org/software/bash/[Bash] scripts intended to facilitate <<tasks,tasks>> with different versions of JBoss EAP installed through zips.
+This project is a small bunch of https://www.gnu.org/software/bash/[Bash] scripts intended to facilitate <<tasks,tasks>> with different versions of JBoss (including http://wildfly.org[Wildfly], https://developers.redhat.com/products/eap/overview/[EAP], and older) installed through zips.
 
-== Supported JBoss EAP versions
+== JBoss versions already tested with this scripts
 
 * JBoss EAP 7
 * JBoss EAP 6
@@ -12,7 +12,7 @@ This project is a small bunch of https://www.gnu.org/software/bash/[Bash] script
 
 == Installation
 
-Go to a directory where do you have downloaded binaries for a specific JBoss EAP version. For example, supose that you are in a directory called `jboss-eap-7` with this structure:
+Go to a directory where you already downloaded binaries for a specific JBoss version. For example, supose that you are in a directory called `jboss-eap-7` with this structure:
 
 ----
 $ cd jboss-eap-7
@@ -26,34 +26,44 @@ $ find .
 ./jboss-eap-7.0.4-src.zip
 ----
 
-To start using `jboss-eap-scripts` with this version of jboss, do this:
+To start using `jboss-scripts` with this version of jboss, do this:
 
 ----
-$ (cd .. && git clone https://github.com/paulojeronimo/jboss-eap-scripts)
-$ ../jboss-eap-scripts/install
+$ (cd .. && git clone https://github.com/paulojeronimo/jboss-scripts)
+$ ../jboss-scripts/install
 ----
 
 You will see that some links were created:
 
 ----
-$ find . -type l|xargs readlink
-../jboss-eap-scripts/scripts/config.sample
-../jboss-eap-scripts/scripts/deploy
-../jboss-eap-scripts/scripts/new
-../jboss-eap-scripts/scripts/path
-../jboss-eap-scripts/scripts/run
-../jboss-eap-scripts/scripts/undeploy
+$ find . -type l|sort|xargs readlink
+../jboss-scripts/scripts/home
+../jboss-scripts/scripts/jboss-config.sample
+../jboss-scripts/scripts/jboss-deploy
+../jboss-scripts/scripts/jboss-install
+../jboss-scripts/scripts/jboss-run
+../jboss-scripts/scripts/jboss-undeploy
 ----
 
 == Uninstallation
 
 ----
-$ ../jboss-eap-scripts/uninstall
+$ ../jboss-scripts/uninstall
 ----
 
 == Configuration
 
-Inside directory link:scripts[], copy link:scripts/config.sample[config.sample] to `config` and edit it according to your needs.
+Inside link:scripts[] directory, copy link:scripts/jboss-config.sample[jboss-config.sample] to `jboss-config` and edit it according to your needs.
+
+You can also create a file named `jboss-version`. Inside it, configure a `$JBOSS_VERSION`. For example, if you are configuring a JBoss EAP 6.4 dir, you can do:
+
+----
+$ pwd
+jboss-eap-6
+$ echo "JBOSS_VERSION=6.4" > jboss-version
+----
+
+If you created this file, it will be sourced before `jboss-config`. So, you can take some configure decisions based on `$JBOSS_VERSION` value.
 
 [[tasks]]
 == Tasks
@@ -79,22 +89,22 @@ $ echo ${!JBOSS_*}|tr ' ' '\n'
 
 === Install JBoss
 
-To install JBoss EAP (removing the existing installation), execute:
+To install JBoss (removing the existing installation), execute:
 
 ----
-new
+jboss-install
 ----
 
-The link:scripts/new[new] script will do many tasks. For example, it will:
+The link:scripts/jboss-install[jboss-install] script will do many tasks. For example, it will:
 
 . Extract the (default or configured) JBoss zip installer.
 . Apply the configured patches.
-. Configure modules and datasources (ex: Oracle).
+. Configure modules and JDBC drivers (ex: Oracle).
 . Create a configured JBoss zip installer.
 
 [TIP]
 ====
-The `new` script will extract the configured JBoss zip installer (if it exists). You can force a creation of this zip running `new -f`.
+The `jboss-install` script will extract the configured JBoss zip installer (if it exists). You can force a creation of this zip running `jboss-install -f`.
 ====
 
 === Run JBoss
@@ -102,7 +112,7 @@ The `new` script will extract the configured JBoss zip installer (if it exists).
 To run JBoss:
 
 ----
-run
+jboss-run
 ----
 
 === Deploy a package
@@ -110,7 +120,7 @@ run
 To deploy a package (copying it to `$JBOSS_HOME/$JBOSS_DEPLOY_DIR`):
 
 ----
-deploy package
+jboss-deploy package
 ----
 
 === Undeploy a package
@@ -118,5 +128,5 @@ deploy package
 To undeploy a package (removing it from `$JBOSS_HOME/$JBOSS_DEPLOY_DIR`):
 
 ----
-undeploy package
+jboss-undeploy package
 ----

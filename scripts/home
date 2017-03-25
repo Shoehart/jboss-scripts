@@ -1,14 +1,14 @@
 #!/bin/bash
-DIR=${BASH_SOURCE[0]}
-[ "${DIR:0:1}" = / ] || DIR=$PWD/$DIR
-DIR=`dirname "$DIR"`
+JBOSS_BASE_DIR=${BASH_SOURCE[0]}
+[ "${JBOSS_BASE_DIR:0:1}" = / ] || JBOSS_BASE_DIR=$PWD/$JBOSS_BASE_DIR
+JBOSS_BASE_DIR=`dirname "$JBOSS_BASE_DIR"`
 
-config=$DIR/config
+config=$JBOSS_BASE_DIR/jboss-config
 [ -r "$config" ] || config=$config.sample
 source "$config"
 
-export JBOSS_HOME=$DIR/$JBOSS_DIR
+export JBOSS_HOME=$JBOSS_BASE_DIR/$JBOSS_DIR
 
-PATH=$DIR/$JBOSS_HOME/$JBOSS_BIN_DIR:$PATH
-PATH=$DIR:$PATH
+PATH=$JBOSS_HOME/$JBOSS_BIN_DIR:$PATH
+PATH=$JBOSS_BASE_DIR:$PATH
 export PATH

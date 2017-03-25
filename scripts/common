@@ -1,0 +1,13 @@
+#!/bin/bash
+
+version="$BASE_DIR"/jboss-version
+if [ -r "$version" ]
+then
+  echo "Loading JBoss version configuration from \"$version\" ..."
+  source "$version"
+fi
+
+config="$BASE_DIR"/jboss-config
+[ -r "$config" ] || config=$config.sample
+echo "Loading JBoss configurations from \"$config\" ..."
+source "$config"
