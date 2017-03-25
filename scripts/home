@@ -1,0 +1,14 @@
+#!/bin/bash
+DIR=${BASH_SOURCE[0]}
+[ "${DIR:0:1}" = / ] || DIR=$PWD/$DIR
+DIR=`dirname "$DIR"`
+
+config=$DIR/config
+[ -r "$config" ] || config=$config.sample
+source "$config"
+
+export JBOSS_HOME=$DIR/$JBOSS_DIR
+
+PATH=$DIR/$JBOSS_HOME/$JBOSS_BIN_DIR:$PATH
+PATH=$DIR:$PATH
+export PATH

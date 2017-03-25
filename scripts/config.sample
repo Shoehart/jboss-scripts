@@ -7,7 +7,7 @@ JBOSS_ADMIN_PASSWORD=jb_xpt0312
 JBOSS_BIND_ADDRESS=0.0.0.0
 JBOSS_BIND_ADDRESS_MANAGEMENT=0.0.0.0
 
-ORACLE_DRIVER=../ojdbc6.jar
+ORACLE_DRIVER=../oracle-jdbc-drivers/ojdbc6.jar
 
 jboss-6-7-config() {
   JBOSS_ZIP=$JBOSS_DIR.0.zip

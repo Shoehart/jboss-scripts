@@ -1,40 +1,122 @@
-= JBoss EAP Simple Scripts
+= JBoss EAP Scripts
+:toc:
+:numbered:
 
-`jboss-eap-ss` is just a small bunch of scripts intended to facilitate simple tasks with different versions of JBoss EAP.
+This project is a small bunch of https://www.gnu.org/software/bash/[Bash] scripts intended to facilitate <<tasks,tasks>> with different versions of JBoss EAP installed through zips.
+
+== Supported JBoss EAP versions
+
+* JBoss EAP 7
+* JBoss EAP 6
+* JBoss EAP 5
 
 == Installation
 
-Go to a directory where do you have binaries for a specific JBoss EAP version. For example, supose that you are in `jboss-eap-7` directory and you already download the `jboss-eap-7.0.0.zip` on this directory. To start this version of jboss, clone this project on a parent (`..`) dir (for example) and, after that, proceed with the following commands:
+Go to a directory where do you have downloaded binaries for a specific JBoss EAP version. For example, supose that you are in a directory called `jboss-eap-7` with this structure:
 
-[source,bash]
 ----
-../jboss-eap-ss/install
+$ cd jboss-eap-7
+$ find .
+.
+./jboss-eap-7.0.0-maven-repository.zip
+./jboss-eap-7.0.0-quickstarts.zip
+./jboss-eap-7.0.0.zip
+./jboss-eap-7.0.4-incremental-maven-repository.zip
+./jboss-eap-7.0.4-patch.zip
+./jboss-eap-7.0.4-src.zip
 ----
 
-== Use
+To start using `jboss-eap-scripts` with this version of jboss, do this:
 
-First, edit your `config` file and set `JBOSS_VERSION` accordingly. This file was copied from link:config.sample[] when you called `install`. After that ...
+----
+$ (cd .. && git clone https://github.com/paulojeronimo/jboss-eap-scripts)
+$ ../jboss-eap-scripts/install
+----
 
-To extract a new installation (removing the existing):
-[source,bash]
+You will see that some links were created:
+
 ----
-./new
+$ find . -type l|xargs readlink
+../jboss-eap-scripts/scripts/config.sample
+../jboss-eap-scripts/scripts/deploy
+../jboss-eap-scripts/scripts/new
+../jboss-eap-scripts/scripts/path
+../jboss-eap-scripts/scripts/run
+../jboss-eap-scripts/scripts/undeploy
 ----
+
+== Uninstallation
+
+----
+$ ../jboss-eap-scripts/uninstall
+----
+
+== Configuration
+
+Inside directory link:scripts[], copy link:scripts/config.sample[config.sample] to `config` and edit it according to your needs.
+
+[[tasks]]
+== Tasks
+
+=== Configure your PATH and put JBOSS variables in your shell
+
+To configure your `PATH` and put all `JBOSS_` variables visible in your shell, execute:
+
+----
+$ ./source home
+----
+
+[TIP]
+====
+You could run `source <script>` from anywhere.
+====
+
+Now, you can see the what `JBOSS_` variables are present:
+
+----
+$ echo ${!JBOSS_*}|tr ' ' '\n'
+----
+
+=== Install JBoss
+
+To install JBoss EAP (removing the existing installation), execute:
+
+----
+new
+----
+
+The link:scripts/new[new] script will do many tasks. For example, it will:
+
+. Extract the (default or configured) JBoss zip installer.
+. Apply the configured patches.
+. Configure modules and datasources (ex: Oracle).
+. Create a configured JBoss zip installer.
+
+[TIP]
+====
+The `new` script will extract the configured JBoss zip installer (if it exists). You can force a creation of this zip running `new -f`.
+====
+
+=== Run JBoss
 
 To run JBoss:
-[source,bash]
+
 ----
-./run
+run
 ----
 
-To deploy a package (copying it to `JBOSS_DEPLOY_DIR`):
-[source,bash]
+=== Deploy a package
+
+To deploy a package (copying it to `$JBOSS_HOME/$JBOSS_DEPLOY_DIR`):
+
 ----
-./deploy package
+deploy package
 ----
 
-To set your `PATH` (making JBoss binaries available):
-[source,bash]
+=== Undeploy a package
+
+To undeploy a package (removing it from `$JBOSS_HOME/$JBOSS_DEPLOY_DIR`):
+
 ----
-./source path
+undeploy package
 ----
