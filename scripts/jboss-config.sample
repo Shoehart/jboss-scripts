@@ -18,7 +18,7 @@ jboss-config-common-6-7() {
 
 jboss-config-7.0() {
   jboss-config-common-6-7
-  JBOSS_PATCHES[1]=jboss-eap-7.0.4-patch.zip
+  JBOSS_PATCHES[1]=jboss-eap-7.0.5-patch.zip
 }
 
 jboss-config-6.4() {
