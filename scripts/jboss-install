@@ -71,12 +71,13 @@ extract-native-components() {
 }
 
 apply-jboss-patches() {
-  if ! [ "${JBOSS_PATCHES[*]}" ]
+  if [ "${JBOSS_PATCHES[*]}" ]
   then
-    echo "  JBOSS_PATCHES array not configured!"
-    exit 1
+    echo "  Applying JBoss patches ..."
+  else
+    echo "  JBOSS_PATCHES array not configured! Skipping patches ..."
+    return
   fi
-  echo "  Applying JBoss patches ..."
 
   local n
   for n in `seq ${#JBOSS_PATCHES[*]}`
@@ -96,6 +97,7 @@ apply-user-patches() {
   then
     patches_dir=`cd "$patches_dir"; pwd`
   else
+    echo "  user-patches not found (in $patches_dir)! Skipping patches ..."
     return
   fi
 

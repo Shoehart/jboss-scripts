@@ -1,7 +1,19 @@
 #!/bin/bash
 
-JBOSS_VERSION=${JBOSS_VERSION:-7.0}
-JBOSS_DIR=jboss-eap-$JBOSS_VERSION
+#JBOSS_TYPE=jboss-eap
+JBOSS_TYPE=rh-sso
+
+case "$JBOSS_TYPE" in
+  jboss-eap)
+    JBOSS_VERSION=${JBOSS_VERSION:-7.0}
+    JBOSS_DIR=$JBOSS_TYPE-$JBOSS_VERSION
+    ;;
+  rh-sso)
+    JBOSS_VERSION=${JBOSS_VERSION:-7.1.0.Beta}
+    JBOSS_DIR=$JBOSS_TYPE-7.1
+    ;;
+esac
+
 JBOSS_ADMIN_USER=jbadmin
 JBOSS_ADMIN_PASSWORD=jb_xpt0312
 JBOSS_BIND_ADDRESS=0.0.0.0
@@ -9,20 +21,27 @@ JBOSS_BIND_ADDRESS_MANAGEMENT=0.0.0.0
 
 ORACLE_DRIVER=../oracle-jdbc-drivers/ojdbc6.jar
 
-jboss-config-common-6-7() {
+jboss-config-rh-sso-7.1.0.Beta() {
+  JBOSS_ZIP=$JBOSS_DIR.0.Beta.zip
+  JBOSS_BIN_DIR=bin
+  JBOSS_START_SCRIPT=standalone.sh
+  JBOSS_DEPLOY_DIR=standalone/deployments
+}
+
+jboss-config-jboss-eap-common-6-7() {
   JBOSS_ZIP=$JBOSS_DIR.0.zip
   JBOSS_BIN_DIR=bin
   JBOSS_START_SCRIPT=standalone.sh
   JBOSS_DEPLOY_DIR=standalone/deployments
 }
 
-jboss-config-7.0() {
-  jboss-config-common-6-7
+jboss-config-jboss-eap-7.0() {
+  jboss-config-jboss-eap-common-6-7
   JBOSS_PATCHES[1]=jboss-eap-7.0.5-patch.zip
 }
 
-jboss-config-6.4() {
-  jboss-config-common-6-7
+jboss-config-jboss-eap-6.4() {
+  jboss-config-jboss-eap-common-6-7
 
   case $OSTYPE in
     linux*) # assuming that we are on RHEL7
@@ -38,11 +57,13 @@ jboss-config-6.4() {
   JBOSS_PATCHES[3]=jboss-eap-6.4.14-patch.zip
 }
 
-jboss-config-5.2() {
+jboss-config-jboss-eap-5.2() {
   JBOSS_ZIP=$JBOSS_DIR.0.zip
   JBOSS_BIN_DIR=jboss-as/bin
   JBOSS_START_SCRIPT=run.sh
   JBOSS_DEPLOY_DIR=jboss-as/server/default/deploy
 }
 
-jboss-config-$JBOSS_VERSION
+jboss-config-$JBOSS_TYPE-$JBOSS_VERSION
+
+# vim: set ts=2 sw=2 et:
