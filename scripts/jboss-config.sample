@@ -9,7 +9,7 @@ case "$JBOSS_TYPE" in
     JBOSS_DIR=$JBOSS_TYPE-$JBOSS_VERSION
     ;;
   rh-sso)
-    JBOSS_VERSION=${JBOSS_VERSION:-7.1.0.Beta}
+    JBOSS_VERSION=${JBOSS_VERSION:-7.1.0}
     JBOSS_DIR=$JBOSS_TYPE-7.1
     ;;
 esac
@@ -21,8 +21,8 @@ JBOSS_BIND_ADDRESS_MANAGEMENT=0.0.0.0
 
 ORACLE_DRIVER=../oracle-jdbc-drivers/ojdbc6.jar
 
-jboss-config-rh-sso-7.1.0.Beta() {
-  JBOSS_ZIP=$JBOSS_DIR.0.Beta.zip
+jboss-config-rh-sso-7.1.0() {
+  JBOSS_ZIP=$JBOSS_DIR.0.zip
   JBOSS_BIN_DIR=bin
   JBOSS_START_SCRIPT=standalone.sh
   JBOSS_DEPLOY_DIR=standalone/deployments
