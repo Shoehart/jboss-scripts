@@ -1,0 +1,52 @@
+#!/bin/bash
+set -e
+
+if ! (( `id -u` == 0 ))
+then
+  echo "You must be run this script with sudo (or as root)!"
+  exit
+fi
+
+BASE_DIR=`cd "$(dirname "$0")"; pwd`
+source "$BASE_DIR"/common
+
+cd "$BASE_DIR"
+
+[ "$SUDO_USER" ] && using_sudo=true || using_sudo=false
+[ -d "$JBOSS_DIR" -a -f "$JBOSS_CONFIGURED_ZIP" ] || { 
+  $using_sudo \
+    && sudo -u $SUDO_USER ./jboss-install \
+    || ./jboss-install;
+}
+
+f=/etc/default/$JBOSS_NAME.conf
+echo "Creating \"$f\":"
+cat > $f <<EOF
+JBOSS_HOME=$JBOSS_INSTALL_DIR/$JBOSS_DIR
+JBOSS_USER=$JBOSS_USER
+JBOSS_CONSOLE_LOG=/var/log/$JBOSS_NAME/console.log
+EOF
+cat -n $f
+
+from=$JBOSS_DIR/bin/init.d/jboss-eap-rhel.sh
+to=/etc/init.d/$JBOSS_NAME
+echo "Copying \"$from\" to \"$to\" ..."
+cp $from $to
+
+echo "Configuring JBOSS_NAME ($JBOSS_NAME) on \"$to\" ..."
+sed -i "s/\(JBOSS_NAME='\)jboss-eap/\1$JBOSS_NAME/g" $to
+
+echo "Removing \"$JBOSS_INSTALL_DIR/$JBOSS_DIR\" ..."
+cd "$JBOSS_INSTALL_DIR" && { rm -rf "$JBOSS_DIR"; cd - > /dev/null; }
+
+echo "Extracting \"$JBOSS_CONFIGURED_ZIP\" to \"$JBOSS_INSTALL_DIR\" ..."
+unzip -q -d "$JBOSS_INSTALL_DIR" "$JBOSS_CONFIGURED_ZIP"
+
+grep -q $JBOSS_USER /etc/passwd || ./jboss-useradd
+
+echo "Configuring owner ($JBOSS_USER) for dir \"$JBOSS_INSTALL_DIR/$JBOSS_DIR\" ..."
+chown -R $JBOSS_USER "$JBOSS_INSTALL_DIR/$JBOSS_DIR"
+
+echo "Calling chkconfig for service $JBOSS_NAME ..."
+chkconfig --override $JBOSS_NAME
+chkconfig $JBOSS_NAME on

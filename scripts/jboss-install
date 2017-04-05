@@ -19,7 +19,6 @@ jboss-cli() {
 
 check-configured-zip() {
   JBOSS_CONFIGURED=false
-  JBOSS_CONFIGURED_ZIP=`basename $JBOSS_ZIP .zip`.configured.zip
 
   if [ "$1" = "-f" ]
   then
