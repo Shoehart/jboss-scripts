@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+if ! (( `id -u` == 0 ))
+then
+  echo "You must be run this script with sudo (or as root)!"
+  exit
+fi
+
+BASE_DIR=`cd "$(dirname "$0")"; pwd`
+source "$BASE_DIR"/common
+
+cd "$BASE_DIR"
+
+if ! grep -q $JBOSS_USER /etc/passwd
+then
+  useradd -r $JBOSS_USER && echo "JBOSS_USER ($JBOSS_USER) created!"
+else
+  echo "JBOSS_USER ($JBOSS_USER) already created!"
+fi
