@@ -6,14 +6,13 @@ JBOSS_NAME=rh-sso
 case "$JBOSS_NAME" in
   jboss-eap)
     JBOSS_VERSION=${JBOSS_VERSION:-7.0}
-    JBOSS_DIR=$JBOSS_NAME-$JBOSS_VERSION
     ;;
   rh-sso)
-    JBOSS_VERSION=${JBOSS_VERSION:-7.1.0}
-    JBOSS_DIR=$JBOSS_NAME-7.1
+    JBOSS_VERSION=${JBOSS_VERSION:-7.1}
     ;;
 esac
 
+JBOSS_DIR=$JBOSS_NAME-$JBOSS_VERSION
 JBOSS_USER=jboss
 JBOSS_INSTALL_DIR=/opt
 JBOSS_ADMIN_USER=jbadmin
@@ -31,7 +30,7 @@ jboss-config-jboss-eap-common-6-7() {
   JBOSS_DEPLOY_DIR=standalone/deployments
 }
 
-jboss-config-rh-sso-7.1.0() {
+jboss-config-rh-sso-7.1() {
   jboss-config-jboss-eap-common-6-7
 }
 
