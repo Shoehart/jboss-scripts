@@ -12,12 +12,13 @@ case "$JBOSS_NAME" in
     ;;
 esac
 
+PASSWORD_SUFFIX="-xpt03!2"
 JBOSS_DIR=$JBOSS_NAME-$JBOSS_VERSION
 JBOSS_USER=jboss
 JBOSS_GROUP=$JBOSS_USER
 JBOSS_INSTALL_DIR=/opt
 JBOSS_ADMIN_USER=jbadmin
-JBOSS_ADMIN_PASSWORD=jb_xpt0312
+JBOSS_ADMIN_PASSWORD="${JBOSS_ADMIN_USER}${PASSWORD_SUFFIX}"
 JBOSS_BIND_ADDRESS=0.0.0.0
 JBOSS_BIND_ADDRESS_MANAGEMENT=0.0.0.0
 JBOSS_ZIP=$JBOSS_DIR.0.zip
@@ -33,6 +34,8 @@ jboss-config-jboss-eap-common-6-7() {
 
 jboss-config-rh-sso-7.1() {
   jboss-config-jboss-eap-common-6-7
+  RH_SSO_ADMIN_USER=rh-sso-admin
+  RH_SSO_ADMIN_PASSWORD="${RH_SSO_ADMIN_USER}${PASSWORD_SUFFIX}"
 }
 
 jboss-config-jboss-eap-7.0() {

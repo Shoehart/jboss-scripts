@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+BASE_DIR=`cd "$(dirname "$0")"; pwd`
+source "$BASE_DIR"/common
+
+export JBOSS_HOME=$JBOSS_INSTALL_DIR/$JBOSS_DIR
+sudo -u $JBOSS_USER $JBOSS_HOME/bin/add-user-keycloak.sh -u $RH_SSO_ADMIN_USER -p $RH_SSO_ADMIN_PASSWORD
