@@ -44,8 +44,8 @@ unzip -q -d "$JBOSS_INSTALL_DIR" "$JBOSS_CONFIGURED_ZIP"
 
 grep -q $JBOSS_USER /etc/passwd || ./jboss-useradd
 
-echo "Configuring owner ($JBOSS_USER) for dir \"$JBOSS_INSTALL_DIR/$JBOSS_DIR\" ..."
-chown -R $JBOSS_USER "$JBOSS_INSTALL_DIR/$JBOSS_DIR"
+echo "Configuring owner ($JBOSS_USER:$JBOSS_GROUP) for dir \"$JBOSS_INSTALL_DIR/$JBOSS_DIR\" ..."
+chown -R $JBOSS_USER:$JBOSS_GROUP "$JBOSS_INSTALL_DIR/$JBOSS_DIR"
 
 echo "Calling chkconfig for service $JBOSS_NAME ..."
 chkconfig --override $JBOSS_NAME
