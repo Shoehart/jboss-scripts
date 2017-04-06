@@ -8,6 +8,10 @@ then
 fi
 
 config="$BASE_DIR"/jboss-config
+load_configuration_warned=${load_configuration_warned:-false}
 [ -r "$config" ] || config=$config.sample
-echo "Loading JBoss configurations from \"$config\" ..."
+$load_configuration_warned || {
+  echo "Loading JBoss configurations from \"$config\" ..."
+  export load_configuration_warned=true
+}
 source "$config"
