@@ -19,34 +19,40 @@ cd "$BASE_DIR"
     || ./jboss-install;
 }
 
-f=/etc/default/$JBOSS_NAME.conf
-echo "Creating \"$f\":"
-cat > $f <<EOF
-JBOSS_HOME=$JBOSS_INSTALL_DIR/$JBOSS_DIR
-JBOSS_USER=$JBOSS_USER
-JBOSS_CONSOLE_LOG=/var/log/$JBOSS_NAME/console.log
-EOF
-cat -n $f
-
-from=$JBOSS_DIR/bin/init.d/jboss-eap-rhel.sh
-to=/etc/init.d/$JBOSS_NAME
-echo "Copying \"$from\" to \"$to\" ..."
-cp $from $to
-
-echo "Configuring JBOSS_NAME ($JBOSS_NAME) on \"$to\" ..."
-sed -i "s/\(JBOSS_NAME='\)jboss-eap/\1$JBOSS_NAME/g" $to
-
 echo "Removing \"$JBOSS_INSTALL_DIR/$JBOSS_DIR\" ..."
 cd "$JBOSS_INSTALL_DIR" && { rm -rf "$JBOSS_DIR"; cd - > /dev/null; }
 
 echo "Extracting \"$JBOSS_CONFIGURED_ZIP\" to \"$JBOSS_INSTALL_DIR\" ..."
 unzip -q -d "$JBOSS_INSTALL_DIR" "$JBOSS_CONFIGURED_ZIP"
 
+echo "Creating link $JBOSS_NAME on $JBOSS_INSTALL_DIR ..."
+ln -sf "$JBOSS_INSTALL_DIR/$JBOSS_DIR" "$JBOSS_INSTALL_DIR/$JBOSS_NAME"
+
 grep -q $JBOSS_USER /etc/passwd || ./jboss-useradd
 
 echo "Configuring owner ($JBOSS_USER:$JBOSS_GROUP) for dir \"$JBOSS_INSTALL_DIR/$JBOSS_DIR\" ..."
 chown -R $JBOSS_USER:$JBOSS_GROUP "$JBOSS_INSTALL_DIR/$JBOSS_DIR"
 
-echo "Calling chkconfig for service $JBOSS_NAME ..."
-chkconfig --override $JBOSS_NAME
-chkconfig $JBOSS_NAME on
+f=/usr/lib/systemd/system/rh-sso.service
+echo "Creating \"$f\":"
+cat > $f <<EOF
+[Unit]
+Description=RH-SSO 7.1 Systemctl script
+After=NetworkManager.service
+
+[Service]
+Type=forking
+ExecStart=$JBOSS_INSTALL_DIR/$JBOSS_DIR/bin/init.d/jboss-eap-rhel.sh start
+ExecStop=$JBOSS_INSTALL_DIR/$JBOSS_DIR/bin/init.d/jboss-eap-rhel.sh stop
+ExecReload=$JBOSS_INSTALL_DIR/$JBOSS_DIR/bin/init.d/jboss-eap-rhel.sh restart
+Environment="JBOSS_NAME=$JBOSS_NAME"
+Environment="JBOSS_USER=$JBOSS_USER"
+PIDFile=/var/run/jboss-eap/$JBOSS_NAME.pid
+
+[Install]
+WantedBy=multi-user.target
+EOF
+cat -n $f
+
+echo "Reloading systemctl daemon ..."
+systemctl daemon-reload
