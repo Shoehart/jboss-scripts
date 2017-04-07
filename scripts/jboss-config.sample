@@ -24,7 +24,7 @@ JBOSS_BIND_ADDRESS_MANAGEMENT=0.0.0.0
 JBOSS_ZIP=$JBOSS_DIR.0.zip
 JBOSS_CONFIGURED_ZIP=`basename $JBOSS_ZIP .zip`.configured.zip
 
-ORACLE_DRIVER=../oracle-jdbc-drivers/ojdbc6.jar
+ORACLE_DRIVER=../oracle-jdbc-drivers/ojdbc7.jar
 
 jboss-config-jboss-eap-common-6-7() {
   JBOSS_BIN_DIR=bin

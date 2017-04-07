@@ -58,6 +58,14 @@ add-user() {
   $JBOSS_DIR/bin/add-user.sh -s -u "$JBOSS_ADMIN_USER" -p "$JBOSS_ADMIN_PASSWORD"
 }
 
+add-user-keycloak() {
+  if [ "$JBOSS_NAME" =  "rh-sso" ]
+  then
+    echo "  Adding RH_SSO admin user ($RH_SSO_ADMIN_USER) ..."
+    $JBOSS_HOME/bin/add-user-keycloak.sh -u "$RH_SSO_ADMIN_USER" -p "$RH_SSO_ADMIN_PASSWORD" > /dev/null
+  fi
+}
+
 extract-native-components() {
   if [ "$JBOSS_VERSION" = "6.4" -a -r "$JBOSS_NATIVE_COMPONENTS_ZIP" ]
   then
@@ -168,6 +176,7 @@ create-configured-zip() {
   then
     echo "Creating \"$JBOSS_CONFIGURED_ZIP\" ..."
     add-user
+    add-user-keycloak
     apply-jboss-patches
     # INFO: native components must be installed after applying jboss patches, otherwise it fails!
     extract-native-components
