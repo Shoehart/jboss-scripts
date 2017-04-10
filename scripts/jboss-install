@@ -62,7 +62,7 @@ add-user-keycloak() {
   if [ "$JBOSS_NAME" =  "rh-sso" ]
   then
     echo "  Adding RH_SSO admin user ($RH_SSO_ADMIN_USER) ..."
-    $JBOSS_HOME/bin/add-user-keycloak.sh -u "$RH_SSO_ADMIN_USER" -p "$RH_SSO_ADMIN_PASSWORD" > /dev/null
+    $JBOSS_DIR/bin/add-user-keycloak.sh -u "$RH_SSO_ADMIN_USER" -p "$RH_SSO_ADMIN_PASSWORD" > /dev/null
   fi
 }
 
