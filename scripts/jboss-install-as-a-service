@@ -30,8 +30,8 @@ cd "$BASE_DIR"
 }
 [ -d "$JBOSS_DIR" -a -f "$JBOSS_CONFIGURED_ZIP" ] || { 
   $using_sudo \
-    && sudo -u $SUDO_USER ./jboss-install \
-    || ./jboss-install;
+    && sudo -u $SUDO_USER JBOSS_NAME=$JBOSS_NAME ./jboss-install \
+    || JBOSS_NAME=$JBOSS_NAME ./jboss-install;
 }
 
 echo "Removing \"$JBOSS_INSTALL_DIR/$JBOSS_DIR\" ..."
