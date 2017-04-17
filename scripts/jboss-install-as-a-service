@@ -7,12 +7,27 @@ then
   exit
 fi
 
+force=false
+while [ "$1" ]
+do
+  op=$1
+  shift || true
+  case "$op" in
+    -f) force=true;;
+  esac
+done
+
 BASE_DIR=`cd "$(dirname "$0")"; pwd`
 source "$BASE_DIR"/common
 
 cd "$BASE_DIR"
 
 [ "$SUDO_USER" ] && using_sudo=true || using_sudo=false
+[ -d "$JBOSS_DIR" ] && $force && {
+  $using_sudo \
+    && sudo -u $SUDO_USER rm -f "$JBOSS_CONFIGURED_ZIP" \
+    || rm -f "$JBOSS_CONFIGURED_ZIP"
+}
 [ -d "$JBOSS_DIR" -a -f "$JBOSS_CONFIGURED_ZIP" ] || { 
   $using_sudo \
     && sudo -u $SUDO_USER ./jboss-install \
@@ -57,7 +72,7 @@ Environment="JBOSS_USER=$JBOSS_USER"
 [Install]
 WantedBy=multi-user.target
 EOF
-cat -n $f
+#cat -n $f
 
 echo "Reloading systemctl daemon ..."
 systemctl daemon-reload
