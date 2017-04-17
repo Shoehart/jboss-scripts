@@ -10,9 +10,9 @@ fi
 BASE_DIR=`cd "$(dirname "$0")"; pwd`
 source "$BASE_DIR"/common
 
-case "$1"
+case "$1" in
   install)
-    jboss-install-as-a-service
+    "$BASE_DIR"/jboss-install-as-a-service
     ;;
   start|status|stop|enable|disable)
     systemctl $JBOSS_NAME $1
