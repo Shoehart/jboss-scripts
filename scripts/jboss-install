@@ -127,20 +127,25 @@ apply-user-patches() {
 configure-jboss-variables() {
   local f=$JBOSS_DIR/bin/standalone.conf
 
-  echo "  Setting JBOSS_BIND_ADDRESS_MANAGEMENT ($JBOSS_BIND_ADDRESS_MANAGEMENT) in $f ..."
-  sed_i "s/JBOSS_BIND_ADDRESS_MANAGEMENT/$JBOSS_BIND_ADDRESS_MANAGEMENT/g" $f
+  echo "  Setting jboss variables in $f ..."
+  sed_i "
+    s/JBOSS_BIND_ADDRESS_MANAGEMENT/$JBOSS_BIND_ADDRESS_MANAGEMENT/g ;
+    s/JBOSS_BIND_ADDRESS/$JBOSS_BIND_ADDRESS/g ;
+    s/JBOSS_SOCKET_BINDING_PORT_OFFSET/$JBOSS_SOCKET_BINDING_PORT_OFFSET/g
+  " $f
 
-  echo "  Setting JBOSS_BIND_ADDRESS ($JBOSS_BIND_ADDRESS) in $f ..."
-  sed_i "s/JBOSS_BIND_ADDRESS/$JBOSS_BIND_ADDRESS/g" $f
+  echo "    JBOSS_BIND_ADDRESS_MANAGEMENT=$JBOSS_BIND_ADDRESS_MANAGEMENT"
+  echo "    JBOSS_BIND_ADDRESS=$JBOSS_BIND_ADDRESS"
+  echo "    JBOSS_SOCKET_BINDING_PORT_OFFSET=$JBOSS_SOCKET_BINDING_PORT_OFFSET"
 }
 
-install-oracle-driver() {
+install-oracle-jdbc-driver() {
   local cli=/tmp/oracle-module.cli
 
   cat > $cli <<EOF
 module add \
 --name=oracle.jdbc \
---resources=$ORACLE_DRIVER \
+--resources=$ORACLE_JDBC_DRIVER \
 --dependencies=javax.api,javax.transaction.api
 EOF
   echo "  Installing oracle.jdbc module ..."
@@ -183,7 +188,7 @@ create-configured-zip() {
     extract-native-components
     apply-user-patches
     configure-jboss-variables
-    [ -f "$ORACLE_DRIVER" ] && install-oracle-driver || true
+    [ -f "$ORACLE_JDBC_DRIVER" ] && install-oracle-jdbc-driver || true
     echo "  Creating zip ..."
     zip -qr $JBOSS_CONFIGURED_ZIP $JBOSS_DIR
   fi
