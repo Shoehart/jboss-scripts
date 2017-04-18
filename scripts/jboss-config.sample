@@ -28,6 +28,10 @@ JBOSS_CONFIGURED_ZIP=`basename $JBOSS_ZIP .zip`.configured.zip
 ORACLE_JDBC_DRIVERS_DIR=${ORACLE_JDBC_DRIVERS_DIR:-../oracle-jdbc-drivers}
 ORACLE_JDBC_DRIVER=${ORACLE_JDBC_DRIVER:-ojdbc7.jar}
 ORACLE_JDBC_DRIVER=$ORACLE_JDBC_DRIVERS_DIR/$ORACLE_JDBC_DRIVER
+ORACLE_JDBC_DRIVER_INSTALL=false
+
+RH_SSO_ZIPS_DIR=${RH_SSO_ZIPS_DIR:-../rh-sso-7.1.0}
+RH_SSO_ADAPTER_INSTALL=${RH_SSO_ADAPTER_INSTALL:-false}
 
 jboss-config-jboss-eap-common-6-7() {
   JBOSS_BIN_DIR=bin
@@ -39,11 +43,16 @@ jboss-config-rh-sso-7.1() {
   jboss-config-jboss-eap-common-6-7
   RH_SSO_ADMIN_USER=rh-sso-admin
   RH_SSO_ADMIN_PASSWORD="${RH_SSO_ADMIN_USER}${PASSWORD_SUFFIX}"
+  RH_SSO_ADAPTER_INSTALL=false
+
+  ORACLE_JDBC_DRIVER_INSTALL=true
 }
 
 jboss-config-jboss-eap-7.0() {
   jboss-config-jboss-eap-common-6-7
   JBOSS_PATCHES[1]=jboss-eap-7.0.5-patch.zip
+
+  RH_SSO_ADAPTER_ZIP=$RH_SSO_ZIPS_DIR/rh-sso-7.1.0-eap7-adapter.zip
 }
 
 jboss-config-jboss-eap-6.4() {
@@ -61,6 +70,8 @@ jboss-config-jboss-eap-6.4() {
   JBOSS_PATCHES[2]=BZ-1358913.zip
   # JBoss EAP 6.4.14 patch
   JBOSS_PATCHES[3]=jboss-eap-6.4.14-patch.zip
+
+  RH_SSO_ADAPTER_ZIP=$RH_SSO_ZIPS_DIR/rh-sso-7.1.0-eap6-adapter.zip
 }
 
 jboss-config-jboss-eap-5.2() {

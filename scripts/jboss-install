@@ -140,6 +140,17 @@ configure-jboss-variables() {
 }
 
 install-oracle-jdbc-driver() {
+  if ! $ORACLE_JDBC_DRIVER_INSTALL
+  then
+    return 0
+  else
+    if ! [ -f "$ORACLE_JDBC_DRIVER" ]
+    then
+      echo "  Can't find \"$ORACLE_JDBC_DRIVER\". Please verify your configuration!"
+      return 1
+    fi
+  fi
+
   local cli=/tmp/oracle-module.cli
 
   cat > $cli <<EOF
@@ -167,7 +178,25 @@ run-batch
 stop-embedded-server
 EOF
   echo "  Configuring oracle jdbc driver ..."
-  jboss-cli --file=$cli
+  jboss-cli --file=$cli > /dev/null
+}
+
+install-rh-sso-adapter() {
+  if ! $RH_SSO_ADAPTER_INSTALL
+  then
+    return 0
+  fi
+
+  echo "  Installing RH-SSO client adapter ..."
+  echo "    Extracting \"$RH_SSO_ADAPTER_ZIP\" ..."
+  unzip -q "$RH_SSO_ADAPTER_ZIP" -d "$JBOSS_DIR"
+
+  local cli="$JBOSS_DIR"/bin/adapter-install-offline.cli
+  if [ -f "$cli" ]
+  then
+    echo "    Running \"$cli\" with jboss-cli.sh ..."
+    jboss-cli --file=$cli > /dev/null
+  fi
 }
 
 create-configured-zip() {
@@ -188,7 +217,8 @@ create-configured-zip() {
     extract-native-components
     apply-user-patches
     configure-jboss-variables
-    [ -f "$ORACLE_JDBC_DRIVER" ] && install-oracle-jdbc-driver || true
+    install-oracle-jdbc-driver
+    install-rh-sso-adapter
     echo "  Creating zip ..."
     zip -qr $JBOSS_CONFIGURED_ZIP $JBOSS_DIR
   fi
