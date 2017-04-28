@@ -4,7 +4,7 @@ batch
 /core-service=management/security-realm=UndertowRealm:add()
 
 /core-service=management/security-realm=UndertowRealm/server-identity=ssl:add(\
-keystore-path=keycloak.jks,\
+keystore-path=keystore.jks,\
 keystore-relative-to=jboss.server.config.dir,\
 keystore-password=secret)
 

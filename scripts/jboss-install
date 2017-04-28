@@ -198,23 +198,23 @@ install-rh-sso-adapter() {
   fi
 }
 
-install-rh-sso-https() {
-  if ! $RH_SSO_HTTPS_INSTALL
+configure-https() {
+  if ! $JBOSS_EAP_HTTPS_INSTALL
   then
     return 0
   fi
-  local keystore=keycloak.jks
 
-  echo "  Configuring RH-SSO HTTPS access ..."
+  echo "  Configuring HTTPS access ..."
 
-  echo "    Generating keycloak.jks ..."
+  local keystore=keystore.jks  
+  echo "    Generating $keystore ..."
   keytool -genkey -noprompt -alias $JBOSS_BIND_ADDRESS \
     -keyalg RSA -keystore $keystore -validity 10950 \
-    -dname "CN=$JBOSS_BIND_ADDRESS, OU=keycloak, O=test, L=Rio, ST=RJ, C=BR" \
+    -dname "CN=$JBOSS_BIND_ADDRESS, OU=$JBOSS_NAME, O=test, L=Rio, ST=RJ, C=BR" \
     -storepass secret -keypass secret
   mv $keystore $JBOSS_DIR/standalone/configuration
 
-  local cli="$BASE_DIR"/cli/rh-sso-secure.cli
+  local cli="$BASE_DIR"/cli/configure-https.cli
   echo "    Running \"$cli\" with jboss-cli ..."
   if [ -f "$cli" ]
   then
@@ -245,7 +245,7 @@ create-configured-zip() {
     configure-jboss-variables
     install-oracle-jdbc-driver
     install-rh-sso-adapter
-    install-rh-sso-https
+    configure-https
     echo "  Creating zip ..."
     zip -qr $JBOSS_CONFIGURED_ZIP $JBOSS_DIR
   fi
