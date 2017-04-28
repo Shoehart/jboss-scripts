@@ -6,5 +6,8 @@ cd "$BASE_DIR"
 
 for f in $(find scripts -type f)
 do
-  rm -f $OLDPWD/`basename "$f"`
+  f=${f##scripts/}
+  d=`dirname $f`
+  rm -f $OLDPWD/$f
+  [ "$d" != '.' ] && { _ls=$(ls -A $OLDPWD/$d 2> /dev/null) && { [ "$_ls" ] || rmdir "$OLDPWD/$d"; }; }
 done

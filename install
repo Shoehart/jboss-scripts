@@ -4,9 +4,10 @@ set -e
 BASE_DIR=`cd "$(dirname "$0")";pwd`
 cd "$BASE_DIR"
 
-RELATIVE_DIR=`dirname "$0"`
-
 for f in $(find scripts -type f)
 do
-  ln -sf "$RELATIVE_DIR/scripts/`basename "$f"`" "$OLDPWD"/
+  f=${f##scripts/}
+  d=`dirname $f`
+  mkdir -p "$OLDPWD/$d"
+  ln -sf "$BASE_DIR/scripts/$f" "$OLDPWD"/$d/
 done

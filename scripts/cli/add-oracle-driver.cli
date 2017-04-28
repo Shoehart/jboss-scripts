@@ -1,0 +1,12 @@
+embed-server --server-config=standalone.xml
+batch
+
+/subsystem=datasources/\
+jdbc-driver=oracle:add(\
+driver-name="oracle",\
+driver-module-name="oracle.jdbc",\
+driver-class-name=oracle.jdbc.driver.OracleDriver,\
+driver-xa-datasource-class-name=oracle.jdbc.xa.client.OracleXADataSource)
+
+run-batch
+stop-embedded-server

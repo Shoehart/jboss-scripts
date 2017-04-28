@@ -14,7 +14,7 @@ sed_i() {
 }
 
 jboss-cli() {
-  $JBOSS_DIR/bin/jboss-cli.sh "$@"
+  $JBOSS_DIR/bin/jboss-cli.sh "$@" > /dev/null
 }
 
 check-configured-zip() {
@@ -61,7 +61,7 @@ add-user() {
 add-user-keycloak() {
   if [ "$JBOSS_NAME" =  "rh-sso" ]
   then
-    echo "  Adding RH_SSO admin user ($RH_SSO_ADMIN_USER) ..."
+    echo "  Adding RH-SSO admin user ($RH_SSO_ADMIN_USER) ..."
     $JBOSS_DIR/bin/add-user-keycloak.sh -u "$RH_SSO_ADMIN_USER" -p "$RH_SSO_ADMIN_PASSWORD" > /dev/null
   fi
 }
@@ -91,7 +91,7 @@ apply-jboss-patches() {
   do
     local patch=${JBOSS_PATCHES[$n]}
     echo "    Applying $patch ..."
-    $JBOSS_DIR/bin/jboss-cli.sh --command="patch apply --override-all $patch" > /dev/null
+    jboss-cli --command="patch apply --override-all $patch"
   done
 }
 
@@ -164,21 +164,17 @@ EOF
   jboss-cli --file=$cli
   mv "$JBOSS_DIR"/modules/oracle "$JBOSS_DIR"/modules/system/layers/base/
 
-  # http://wildfly.org/news/2015/03/13/Offline-CLI/
-  cat > $cli <<EOF
-embed-server --server-config=standalone.xml
-batch
-/subsystem=datasources/\
-jdbc-driver=oracle:add(\
-driver-name="oracle",\
-driver-module-name="oracle.jdbc",\
-driver-class-name=oracle.jdbc.driver.OracleDriver,\
-driver-xa-datasource-class-name=oracle.jdbc.xa.client.OracleXADataSource)
-run-batch
-stop-embedded-server
-EOF
-  echo "  Configuring oracle jdbc driver ..."
-  jboss-cli --file=$cli > /dev/null
+  echo "  Adding oracle jdbc driver ..."
+
+  cli="$BASE_DIR"/cli/add-oracle-driver.cli
+  echo "    Running \"$cli\" with jboss-cli ..."
+  if [ -f "$cli" ]
+  then
+    jboss-cli --file=$cli
+  else
+    echo "      File not found!"
+    return 1
+  fi
 }
 
 install-rh-sso-adapter() {
@@ -192,10 +188,40 @@ install-rh-sso-adapter() {
   unzip -q "$RH_SSO_ADAPTER_ZIP" -d "$JBOSS_DIR"
 
   local cli="$JBOSS_DIR"/bin/adapter-install-offline.cli
+  echo "    Running \"$cli\" with jboss-cli ..."
   if [ -f "$cli" ]
   then
-    echo "    Running \"$cli\" with jboss-cli.sh ..."
-    jboss-cli --file=$cli > /dev/null
+    jboss-cli --file=$cli
+  else
+    echo "      File not found!"
+    return 1
+  fi
+}
+
+install-rh-sso-https() {
+  if ! $RH_SSO_HTTPS_INSTALL
+  then
+    return 0
+  fi
+  local keystore=keycloak.jks
+
+  echo "  Configuring RH-SSO HTTPS access ..."
+
+  echo "    Generating keycloak.jks ..."
+  keytool -genkey -noprompt -alias $JBOSS_BIND_ADDRESS \
+    -keyalg RSA -keystore $keystore -validity 10950 \
+    -dname "CN=$JBOSS_BIND_ADDRESS, OU=keycloak, O=test, L=Rio, ST=RJ, C=BR" \
+    -storepass secret -keypass secret
+  mv $keystore $JBOSS_DIR/standalone/configuration
+
+  local cli="$BASE_DIR"/cli/rh-sso-secure.cli
+  echo "    Running \"$cli\" with jboss-cli ..."
+  if [ -f "$cli" ]
+  then
+    jboss-cli --file=$cli
+  else
+    echo "      File not found!"
+    return 1
   fi
 }
 
@@ -219,6 +245,7 @@ create-configured-zip() {
     configure-jboss-variables
     install-oracle-jdbc-driver
     install-rh-sso-adapter
+    install-rh-sso-https
     echo "  Creating zip ..."
     zip -qr $JBOSS_CONFIGURED_ZIP $JBOSS_DIR
   fi
