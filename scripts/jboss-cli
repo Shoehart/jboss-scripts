@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+BASE_DIR=`cd "$(dirname "$0")"; pwd`
+source "$BASE_DIR"/common
+
+cd "$BASE_DIR"
+
+d=$JBOSS_DIR/$JBOSS_BIN_DIR
+
+[ -d "$d" ] || { echo "Install JBoss first!"; exit 1; }
+
+$d/jboss-cli.sh "$@"

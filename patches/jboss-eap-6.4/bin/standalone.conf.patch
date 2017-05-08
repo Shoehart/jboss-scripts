@@ -1,0 +1,11 @@
+--- standalone.conf.original	2017-05-07 21:52:52.000000000 -0300
++++ standalone.conf	2017-05-07 21:54:16.000000000 -0300
+@@ -50,6 +50,8 @@
+    JAVA_OPTS="-Xms1303m -Xmx1303m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true"
+    JAVA_OPTS="$JAVA_OPTS -Djboss.modules.system.pkgs=$JBOSS_MODULES_SYSTEM_PKGS -Djava.awt.headless=true"
+    JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-permissions=true"
++   JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address=JBOSS_BIND_ADDRESS"
++   JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address.management=JBOSS_BIND_ADDRESS_MANAGEMENT"
+ else
+    echo "JAVA_OPTS already set in environment; overriding default settings with values: $JAVA_OPTS"
+ fi

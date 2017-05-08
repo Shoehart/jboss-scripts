@@ -14,7 +14,44 @@ sed_i() {
 }
 
 jboss-cli() {
-  $JBOSS_DIR/bin/jboss-cli.sh "$@" > /dev/null
+  "$BASE_DIR"/jboss-cli "$@" > /dev/null
+}
+
+jboss-is-running() {
+  local running_state=`"$BASE_DIR"/jboss-cli -c --commands=":read-attribute(name=server-state)" 2> /dev/null` || true
+  grep -q "running" <<< $running_state
+}
+
+jboss-start-and-wait-for-running-state() {
+  echo "    Starting $JBOSS_NAME ..."
+  export LAUNCH_JBOSS_IN_BACKGROUND=true
+  export JBOSS_PIDFILE=/tmp/$JBOSS_NAME.$$.pid
+  $JBOSS_DIR/bin/standalone.sh &> /dev/null &
+  while true
+  do
+    [ -f "$JBOSS_PIDFILE" ] && break
+    echo "      Waiting for file $JBOSS_PIDFILE ..."
+    sleep 1
+  done
+  JBOSS_PID=`cat $JBOSS_PIDFILE`
+  echo "      $JBOSS_NAME is running with pid $JBOSS_PID"
+  trap jboss-stop INT TERM EXIT
+
+  while true
+  do
+    jboss-is-running && break
+    echo "      Waiting for $JBOSS_NAME (pid $JBOSS_PID) running state ..."
+    sleep 1
+  done
+}
+
+jboss-stop() {
+  if [ "$JBOSS_PID" ]
+  then
+    echo "  Stopping $JBOSS_NAME (pid $JBOSS_PID) ..."
+    kill $JBOSS_PID
+    unset JBOSS_PID
+  fi
 }
 
 check-configured-zip() {
@@ -166,11 +203,26 @@ EOF
 
   echo "  Adding oracle jdbc driver ..."
 
-  cli="$BASE_DIR"/cli/add-oracle-driver.cli
+  local connect='--connect'
+  case "$JBOSS_VERSION" in
+    6.4)
+      cli="$BASE_DIR"/cli/add-oracle-driver.eap6.cli
+      jboss-start-and-wait-for-running-state
+      ;;
+    7.0)
+      cli="$BASE_DIR"/cli/add-oracle-driver.cli
+      unset connect
+      ;;
+    *)
+      echo "    Invalid JBOSS_VERSION: $JBOSS_VERSION"
+      return 1
+      ;;
+  esac
+
   echo "    Running \"$cli\" with jboss-cli ..."
   if [ -f "$cli" ]
   then
-    jboss-cli --file=$cli
+    jboss-cli $connect --file="$cli"
   else
     echo "      File not found!"
     return 1
@@ -187,11 +239,27 @@ install-rh-sso-adapter() {
   echo "    Extracting \"$RH_SSO_ADAPTER_ZIP\" ..."
   unzip -q "$RH_SSO_ADAPTER_ZIP" -d "$JBOSS_DIR"
 
-  local cli="$JBOSS_DIR"/bin/adapter-install-offline.cli
+  local cli
+  local connect='--connect'
+  case "$JBOSS_VERSION" in
+    6.4)
+      cli="$JBOSS_DIR"/bin/adapter-install.cli
+      jboss-is-running || jboss-start-and-wait-for-running-state
+      ;;
+    7.0)
+      cli="$JBOSS_DIR"/bin/adapter-install-offline.cli
+      unset connect
+      ;;
+    *)
+      echo "    Invalid JBOSS_VERSION: $JBOSS_VERSION"
+      return 1
+      ;;
+  esac
+
   echo "    Running \"$cli\" with jboss-cli ..."
   if [ -f "$cli" ]
   then
-    jboss-cli --file=$cli
+    jboss-cli $connect --file=$cli
   else
     echo "      File not found!"
     return 1
@@ -206,19 +274,52 @@ configure-https() {
 
   echo "  Configuring HTTPS access ..."
 
-  local keystore=keystore.jks  
+  local keystore=$JBOSS_DIR/standalone/configuration/keystore.jks  
   echo "    Generating $keystore ..."
-  keytool -genkey -noprompt -alias $JBOSS_BIND_ADDRESS \
+  keytool -genkey -noprompt -alias $JBOSS_NAME \
     -keyalg RSA -keystore $keystore -validity 10950 \
-    -dname "CN=$JBOSS_BIND_ADDRESS, OU=$JBOSS_NAME, O=test, L=Rio, ST=RJ, C=BR" \
+    -dname "CN=$KEYSTORE_SERVER_NAME" -ext san=ip:$KEYSTORE_SERVER_IP \
     -storepass secret -keypass secret
-  mv $keystore $JBOSS_DIR/standalone/configuration
 
-  local cli="$BASE_DIR"/cli/configure-https.cli
+  local cert=$JBOSS_DIR/standalone/configuration/$JBOSS_NAME.cert
+  echo "    Exporting $(basename $cert) from $keystore ..."
+  keytool -export -alias $JBOSS_NAME -file $cert -storepass secret -keystore $keystore &> /dev/null
+
+  local cacerts=$JAVA_HOME/jre/lib/security/cacerts
+  echo "    Adding $(basename $cert) to $cacerts ..."
+  while true
+  do
+    if sudo keytool -import -keystore $cacerts -alias $JBOSS_NAME -storepass changeit -file $cert -noprompt &> /dev/null
+    then
+      echo "      Added!"
+      break
+    else
+      echo "      Already exists! Deleting it ... "
+      sudo keytool -delete -keystore $cacerts -alias $JBOSS_NAME -storepass changeit -noprompt &> /dev/null || break
+    fi
+  done
+
+  local cli
+  local connect='--connect'
+  case "$JBOSS_VERSION" in
+    6.4)
+      cli="$BASE_DIR"/cli/configure-https.eap6.cli
+      jboss-is-running || jboss-start-and-wait-for-running-state
+      ;;
+    7.0)
+      cli="$BASE_DIR"/cli/configure-https.cli
+      unset connect
+      ;;
+    *)
+      echo "    Invalid JBOSS_VERSION: $JBOSS_VERSION"
+      return 1
+      ;;
+  esac
+
   echo "    Running \"$cli\" with jboss-cli ..."
   if [ -f "$cli" ]
   then
-    jboss-cli --file=$cli
+    jboss-cli $connect --file=$cli
   else
     echo "      File not found!"
     return 1
@@ -246,6 +347,7 @@ create-configured-zip() {
     install-oracle-jdbc-driver
     install-rh-sso-adapter
     configure-https
+    jboss-stop
     echo "  Creating zip ..."
     zip -qr $JBOSS_CONFIGURED_ZIP $JBOSS_DIR
   fi
