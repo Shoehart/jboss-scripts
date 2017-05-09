@@ -16,8 +16,8 @@ esac
 
 PASSWORD_SUFFIX="-xpt03!2"
 
-case `uname` in
-  linux*) JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk;;
+case "$OSTYPE" in
+  linux*) JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-1.8.0-openjdk};;
   darwin*) JAVA_HOME=`/usr/libexec/java_home`;;
 esac
 

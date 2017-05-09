@@ -1,13 +1,9 @@
-batch
+/subsystem=web/connector=https:add(socket-binding=https,scheme=https,protocol=HTTP/1.1,secure=true)
 
-/core-service=management/security-realm=UndertowRealm:add()
+/subsystem=web/connector=https/ssl=configuration:add(\
+name=https,\
+certificate-key-file="${jboss.server.config.dir}/keystore.jks",\
+password="secret",\
+key-alias="JBOSS_NAME")
 
-/core-service=management/security-realm=UndertowRealm/server-identity=ssl:add(\
-keystore-path=keystore.jks,\
-keystore-relative-to=jboss.server.config.dir,\
-keystore-password=secret)
-
-/subsystem=undertow/server=default-server/https-listener=https:add(\
-socket-binding=https,security-realm=UndertowRealm)
-
-run-batch
+/subsystem=web/connector=https/ssl=configuration:write-attribute(name=protocol,value=TLSv1)

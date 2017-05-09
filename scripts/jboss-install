@@ -303,8 +303,12 @@ configure-https() {
   local connect='--connect'
   case "$JBOSS_VERSION" in
     6.4)
+      # http://red.ht/2pWR0jO
       cli="$BASE_DIR"/cli/configure-https.eap6.cli
-      jboss-is-running || jboss-start-and-wait-for-running-state
+      local tmp_cli=/tmp/configure-https.eap6.$$.cli
+      sed "s/JBOSS_NAME/$JBOSS_NAME/g" $cli > $tmp_cli
+      cli=$tmp_cli
+      #jboss-is-running || jboss-start-and-wait-for-running-state
       ;;
     7.0)
       cli="$BASE_DIR"/cli/configure-https.cli
